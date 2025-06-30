@@ -16,47 +16,94 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Sample calculation function
-function performCalculation(operation, num1, num2) {
-  switch (operation.toLowerCase()) {
-    case 'add':
-      return num1 + num2;
-    case 'subtract':
-      return num1 - num2;
-    case 'multiply':
-      return num1 * num2;
-    case 'divide':
-      return num2 !== 0 ? num1 / num2 : 'Cannot divide by zero';
-    case 'power':
-      return Math.pow(num1, num2);
-    default:
-      return 'Unknown operation';
+// GSM validation function for books
+function validateBookGSM(length, breadth, textPages, textGSM, coverGSM, measuredWeight) {
+  try {
+    // Convert dimensions from cm to meters for calculation
+    const lengthM = length / 100;
+    const breadthM = breadth / 100;
+    const pageArea = lengthM * breadthM; // Area of one page in square meters
+    
+    // Calculate expected weights
+    const textWeight = (textPages * pageArea * textGSM) / 1000; // Convert grams to kg, then back to grams
+    const coverWeight = (2 * pageArea * coverGSM) / 1000; // Front and back cover
+    const expectedTotalWeight = (textWeight + coverWeight) * 1000; // Convert to grams
+    
+    // Calculate variance
+    const weightDifference = Math.abs(measuredWeight - expectedTotalWeight);
+    const percentageVariance = (weightDifference / expectedTotalWeight) * 100;
+    
+    // Determine validation status
+    let validationStatus;
+    let statusMessage;
+    
+    if (percentageVariance <= 5) {
+      validationStatus = "PASSED";
+      statusMessage = "GSM validation passed - weight is within acceptable range (±5%)";
+    } else if (percentageVariance <= 10) {
+      validationStatus = "WARNING";
+      statusMessage = "GSM validation warning - weight variance is moderate (5-10%)";
+    } else {
+      validationStatus = "FAILED";
+      statusMessage = "GSM validation failed - weight variance exceeds acceptable limits (>10%)";
+    }
+    
+    return {
+      validationStatus,
+      statusMessage,
+      calculations: {
+        pageArea: Math.round(pageArea * 10000) / 10000, // Round to 4 decimal places
+        expectedTextWeight: Math.round(textWeight * 1000 * 100) / 100,
+        expectedCoverWeight: Math.round(coverWeight * 1000 * 100) / 100,
+        expectedTotalWeight: Math.round(expectedTotalWeight * 100) / 100,
+        measuredWeight: measuredWeight,
+        weightDifference: Math.round(weightDifference * 100) / 100,
+        percentageVariance: Math.round(percentageVariance * 100) / 100
+      }
+    };
+  } catch (error) {
+    return {
+      validationStatus: "ERROR",
+      statusMessage: "Error in GSM calculation: " + error.message,
+      calculations: null
+    };
   }
 }
 
 // Function definitions for OpenAI function calling
 const functions = [
   {
-    name: "perform_calculation",
-    description: "Performs mathematical calculations between two numbers",
+    name: "validate_book_gsm",
+    description: "Validates the GSM (Grams per Square Meter) of a book by comparing expected weight with measured weight",
     parameters: {
       type: "object",
       properties: {
-        operation: {
-          type: "string",
-          description: "The mathematical operation to perform",
-          enum: ["add", "subtract", "multiply", "divide", "power"]
-        },
-        num1: {
+        length: {
           type: "number",
-          description: "The first number"
+          description: "Length of the book in centimeters"
         },
-        num2: {
+        breadth: {
           type: "number",
-          description: "The second number"
+          description: "Breadth/width of the book in centimeters"
+        },
+        textPages: {
+          type: "number",
+          description: "Number of text pages in the book"
+        },
+        textGSM: {
+          type: "number",
+          description: "GSM (grams per square meter) of the text pages"
+        },
+        coverGSM: {
+          type: "number",
+          description: "GSM (grams per square meter) of the cover pages"
+        },
+        measuredWeight: {
+          type: "number",
+          description: "Actual measured weight of the book in grams"
         }
       },
-      required: ["operation", "num1", "num2"]
+      required: ["length", "breadth", "textPages", "textGSM", "coverGSM", "measuredWeight"]
     }
   }
 ];
@@ -75,13 +122,21 @@ app.post('/api/chat', async (req, res) => {
     // Initial system prompt
     const systemPrompt = {
       role: 'system',
-      content: `You are a helpful assistant that can perform mathematical calculations. 
-      When a user asks for a calculation, gather the required parameters (operation type, first number, second number) 
-      and then call the perform_calculation function. Always be friendly and explain what you're doing.
-      
-      Available operations: add, subtract, multiply, divide, power
-      
-      If this is the first interaction, greet the user warmly and ask what calculation they'd like to perform.`
+      content: `You are a specialized GSM (Grams per Square Meter) validation assistant for books. Your job is to help validate the GSM specifications of books by gathering the required parameters and performing weight validation calculations.
+
+      To validate a book's GSM, you need to collect these parameters from the user:
+      1. Length of the book (in centimeters)
+      2. Breadth/width of the book (in centimeters)  
+      3. Number of text pages in the book
+      4. GSM of the text pages (grams per square meter)
+      5. GSM of the cover (grams per square meter)
+      6. Measured weight of the book (in grams)
+
+      Once you have all parameters, call the validate_book_gsm function to perform the validation.
+
+      Be friendly and professional. Ask for the parameters one by one if needed, and explain what GSM means if the user seems unfamiliar with it. GSM stands for "Grams per Square Meter" and is a measure of paper density/weight.
+
+      If this is the first interaction, greet the user warmly and explain what you can help them with.`
     };
     
     // Prepare messages for OpenAI
@@ -104,11 +159,14 @@ app.post('/api/chat', async (req, res) => {
       
       let functionResult;
       
-      if (functionName === 'perform_calculation') {
-        functionResult = performCalculation(
-          functionArgs.operation,
-          functionArgs.num1,
-          functionArgs.num2
+      if (functionName === 'validate_book_gsm') {
+        functionResult = validateBookGSM(
+          functionArgs.length,
+          functionArgs.breadth,
+          functionArgs.textPages,
+          functionArgs.textGSM,
+          functionArgs.coverGSM,
+          functionArgs.measuredWeight
         );
       }
       
@@ -122,7 +180,7 @@ app.post('/api/chat', async (req, res) => {
       conversationHistory.push({
         role: 'function',
         name: functionName,
-        content: functionResult.toString()
+        content: JSON.stringify(functionResult)
       });
       
       // Get final response from OpenAI with function result

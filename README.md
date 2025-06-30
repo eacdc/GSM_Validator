@@ -1,13 +1,14 @@
-# AI Calculator Chatbot
+# GSM Validator for Books
 
-A modern web application that combines a chat interface with OpenAI's GPT model to create an intelligent calculator chatbot. The bot can understand natural language requests for mathematical calculations and perform them using function calling.
+A specialized web application that validates GSM (Grams per Square Meter) specifications for books. Using OpenAI's GPT model with function calling, it gathers book specifications and validates whether the measured weight matches the expected weight based on GSM calculations.
 
 ## Features
 
 - **Modern Chat Interface**: Beautiful, responsive design with smooth animations
 - **OpenAI Integration**: Uses GPT-3.5-turbo with function calling capabilities
-- **Mathematical Calculations**: Supports add, subtract, multiply, divide, and power operations
-- **Natural Language Processing**: Users can ask for calculations in plain English
+- **GSM Validation**: Validates book specifications against measured weights
+- **Natural Language Processing**: Users can provide book specifications in conversational format
+- **Comprehensive Analysis**: Calculates expected weight and provides validation status
 - **Real-time Communication**: Instant responses with loading indicators
 
 ## Tech Stack
@@ -58,26 +59,27 @@ A modern web application that combines a chat interface with OpenAI's GPT model 
 
 1. **Open the application** in your web browser
 2. **Click "Let's Start"** to begin the conversation
-3. **Ask for calculations** in natural language, for example:
-   - "Can you add 25 and 17?"
-   - "What's 144 divided by 12?"
-   - "Calculate 2 to the power of 8"
-   - "Multiply 15 by 23"
+3. **Provide your book specifications** when prompted:
+   - Length of the book (in centimeters)
+   - Breadth/width of the book (in centimeters)
+   - Number of text pages in the book
+   - GSM of the text pages (grams per square meter)
+   - GSM of the cover (grams per square meter)
+   - Measured weight of the book (in grams)
 
-The chatbot will understand your request, extract the necessary parameters, perform the calculation, and provide a friendly response with the result.
+The chatbot will gather all parameters, calculate the expected weight based on GSM specifications, and provide a validation result comparing expected vs. measured weight.
 
 ## API Endpoints
 
 - `POST /api/chat` - Send a message to the chatbot
 - `POST /api/reset` - Reset the conversation history
 
-## Available Calculations
+## Validation Results
 
-- **Addition**: Add two numbers
-- **Subtraction**: Subtract one number from another
-- **Multiplication**: Multiply two numbers
-- **Division**: Divide one number by another
-- **Power**: Raise a number to a power
+- **PASSED**: Weight variance within ±5% (acceptable range)
+- **WARNING**: Weight variance between 5-10% (moderate concern)
+- **FAILED**: Weight variance exceeds 10% (significant discrepancy)
+- **Detailed Analysis**: Page area, expected weights, variance percentage
 
 ## Project Structure
 

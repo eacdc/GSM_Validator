@@ -1,7 +1,7 @@
 {
-  "name": "openai-chatbot-webapp",
+  "name": "gsm-validator-books",
   "version": "1.0.0",
-  "description": "A chatbot webapp with OpenAI integration and function calling",
+  "description": "A GSM validation webapp for books with OpenAI integration and function calling",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
