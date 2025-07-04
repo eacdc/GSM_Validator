@@ -16,49 +16,82 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// GSM validation function for books
+// GSM validation function for books using specific formulas
 function validateBookGSM(length, breadth, textPages, textGSM, coverGSM, measuredWeight) {
   try {
-    // Convert dimensions from cm to meters for calculation
-    const lengthM = length / 100;
-    const breadthM = breadth / 100;
-    const pageArea = lengthM * breadthM; // Area of one page in square meters
+    // Variable mapping as per user requirements:
+    // b2 = length in cm
+    // d2 = breadth in cm
+    // b3 = text pages
+    // d3 = requested GSM (textGSM)
+    // d4 = requested GSM for cover (coverGSM)
+    // d5 = measured weight in gm
     
-    // Calculate expected weights
-    const textWeight = (textPages * pageArea * textGSM) / 1000; // Convert grams to kg, then back to grams
-    const coverWeight = (2 * pageArea * coverGSM) / 1000; // Front and back cover
-    const expectedTotalWeight = (textWeight + coverWeight) * 1000; // Convert to grams
+    const b2 = length;
+    const d2 = breadth;
+    const b3 = textPages;
+    const d3 = textGSM;
+    const d4 = coverGSM;
+    const d5 = measuredWeight;
     
-    // Calculate variance
-    const weightDifference = Math.abs(measuredWeight - expectedTotalWeight);
-    const percentageVariance = (weightDifference / expectedTotalWeight) * 100;
+    // Calculate min estimated weight (a6)
+    // Formula: 0.96*B2/100*D2/100*(B3/2*D3/1000+2*D4/1000)*1000
+    const a6 = 0.96 * (b2/100) * (d2/100) * ((b3/2) * (d3/1000) + 2 * (d4/1000)) * 1000;
     
-    // Determine validation status
+    // Calculate max estimated weight (a7)
+    // Formula: 1.04*B2/100*D2/100*(B3/2*D3/1000+2*D4/1000)*1000
+    const a7 = 1.04 * (b2/100) * (d2/100) * ((b3/2) * (d3/1000) + 2 * (d4/1000)) * 1000;
+    
+    // Calculate actual GSM used or confirm specified GSM
+    // Formula: if(or(D5<A6,D5>A7),round((D5/1000-B2/100*D2/100*2*D4/1000)/B3*2/B2*100/D2*100*1000,0),"")
+    let actualGSMUsed = "";
+    let gsmStatus = "";
+    
+    if (d5 >= a6 && d5 <= a7) {
+      // Weight is within range - specified GSM is correct
+      actualGSMUsed = d3; // Use the specified text GSM
+      gsmStatus = "CORRECT";
+    } else {
+      // Weight is outside range - calculate actual GSM used
+      actualGSMUsed = Math.round((d5/1000 - (b2/100) * (d2/100) * 2 * (d4/1000)) / b3 * 2 / (b2/100) / (d2/100) * 1000);
+      gsmStatus = "CALCULATED";
+    }
+    
+    // Determine validation status based on weight range
     let validationStatus;
     let statusMessage;
     
-    if (percentageVariance <= 5) {
+    if (d5 >= a6 && d5 <= a7) {
       validationStatus = "PASSED";
-      statusMessage = "GSM validation passed - weight is within acceptable range (±5%)";
-    } else if (percentageVariance <= 10) {
-      validationStatus = "WARNING";
-      statusMessage = "GSM validation warning - weight variance is moderate (5-10%)";
+      statusMessage = "GSM validation passed - measured weight is within estimated range. The specified GSM is correct.";
+    } else if (d5 < a6) {
+      validationStatus = "UNDERWEIGHT";
+      statusMessage = "GSM validation failed - book is underweight compared to specifications";
     } else {
-      validationStatus = "FAILED";
-      statusMessage = "GSM validation failed - weight variance exceeds acceptable limits (>10%)";
+      validationStatus = "OVERWEIGHT";
+      statusMessage = "GSM validation failed - book is overweight compared to specifications";
     }
     
     return {
       validationStatus,
       statusMessage,
       calculations: {
-        pageArea: Math.round(pageArea * 10000) / 10000, // Round to 4 decimal places
-        expectedTextWeight: Math.round(textWeight * 1000 * 100) / 100,
-        expectedCoverWeight: Math.round(coverWeight * 1000 * 100) / 100,
-        expectedTotalWeight: Math.round(expectedTotalWeight * 100) / 100,
-        measuredWeight: measuredWeight,
-        weightDifference: Math.round(weightDifference * 100) / 100,
-        percentageVariance: Math.round(percentageVariance * 100) / 100
+        minEstimatedWeight: Math.round(a6 * 100) / 100,
+        maxEstimatedWeight: Math.round(a7 * 100) / 100,
+        measuredWeight: d5,
+        actualGSMUsed: actualGSMUsed,
+        gsmStatus: gsmStatus,
+        weightDifference: {
+          fromMin: Math.round((d5 - a6) * 100) / 100,
+          fromMax: Math.round((d5 - a7) * 100) / 100
+        },
+        inputParameters: {
+          length: b2,
+          breadth: d2,
+          textPages: b3,
+          requestedTextGSM: d3,
+          requestedCoverGSM: d4
+        }
       }
     };
   } catch (error) {
@@ -74,7 +107,7 @@ function validateBookGSM(length, breadth, textPages, textGSM, coverGSM, measured
 const functions = [
   {
     name: "validate_book_gsm",
-    description: "Validates the GSM (Grams per Square Meter) of a book by comparing expected weight with measured weight",
+    description: "Validates the GSM (Grams per Square Meter) of a book by comparing expected weight with measured weight. Also calculates the actual GSM used based on the measured weight when it falls outside the expected range.",
     parameters: {
       type: "object",
       properties: {
@@ -133,6 +166,10 @@ app.post('/api/chat', async (req, res) => {
       6. Measured weight of the book (in grams)
 
       Once you have all parameters, call the validate_book_gsm function to perform the validation.
+
+      IMPORTANT: When presenting the validation results, always mention the paper GSM information:
+      - If the measured weight falls within the expected range (gsmStatus = "CORRECT"), clearly state that "The specified GSM of [X] g/m² is correct and matches the measured weight."
+      - If the measured weight is outside the expected range (gsmStatus = "CALCULATED"), clearly state "Based on the measured weight, the actual GSM used was [X] g/m² instead of the specified GSM."
 
       Be friendly and professional. Ask for the parameters one by one if needed, and explain what GSM means if the user seems unfamiliar with it. GSM stands for "Grams per Square Meter" and is a measure of paper density/weight.
 
