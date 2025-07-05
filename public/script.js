@@ -7,6 +7,14 @@ class ChatBot {
         this.messageInput = document.getElementById('messageInput');
         this.sendBtn = document.getElementById('sendBtn');
         this.loading = document.getElementById('loading');
+        this.languageToggle = document.getElementById('languageToggle');
+        
+        // Language settings
+        this.currentLanguage = 'en';
+        this.languages = {
+            en: { flag: '🇬🇧', code: 'EN', name: 'English' },
+            fr: { flag: '🇫🇷', code: 'FR', name: 'Français' }
+        };
         
         this.init();
     }
@@ -14,11 +22,54 @@ class ChatBot {
     init() {
         this.startBtn.addEventListener('click', () => this.startConversation());
         this.sendBtn.addEventListener('click', () => this.sendMessage());
+        this.languageToggle.addEventListener('click', () => this.toggleLanguage());
         this.messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.sendMessage();
             }
         });
+        
+        // Load saved language preference
+        this.loadLanguagePreference();
+    }
+    
+    toggleLanguage() {
+        this.currentLanguage = this.currentLanguage === 'en' ? 'fr' : 'en';
+        this.updateUI();
+        this.saveLanguagePreference();
+    }
+    
+    updateUI() {
+        const lang = this.languages[this.currentLanguage];
+        const flagIcon = this.languageToggle.querySelector('.flag-icon');
+        const langText = this.languageToggle.querySelector('.lang-text');
+        
+        flagIcon.textContent = lang.flag;
+        langText.textContent = lang.code;
+        
+        // Update all translatable elements
+        document.querySelectorAll('[data-en][data-fr]').forEach(element => {
+            const key = this.currentLanguage === 'en' ? 'data-en' : 'data-fr';
+            element.textContent = element.getAttribute(key);
+        });
+        
+        // Update placeholder text
+        document.querySelectorAll('[data-en-placeholder][data-fr-placeholder]').forEach(element => {
+            const key = this.currentLanguage === 'en' ? 'data-en-placeholder' : 'data-fr-placeholder';
+            element.placeholder = element.getAttribute(key);
+        });
+    }
+    
+    saveLanguagePreference() {
+        localStorage.setItem('gsmValidatorLanguage', this.currentLanguage);
+    }
+    
+    loadLanguagePreference() {
+        const saved = localStorage.getItem('gsmValidatorLanguage');
+        if (saved && this.languages[saved]) {
+            this.currentLanguage = saved;
+            this.updateUI();
+        }
     }
     
     async startConversation() {
@@ -29,8 +80,12 @@ class ChatBot {
         // Clear welcome message
         this.chatMessages.innerHTML = '';
         
-        // Send initial hello message
-        await this.sendMessageToAPI('Hello! I would like to start using the calculator.');
+        // Send initial hello message with language preference
+        const initialMessage = this.currentLanguage === 'en' 
+            ? 'Hello! I would like to start using the calculator.'
+            : 'Bonjour! Je voudrais commencer à utiliser le calculateur.';
+        
+        await this.sendMessageToAPI(initialMessage);
         
         // Focus on input
         this.messageInput.focus();
@@ -61,7 +116,10 @@ class ChatBot {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({ 
+                    message,
+                    language: this.currentLanguage
+                }),
             });
             
             if (!response.ok) {
@@ -75,7 +133,10 @@ class ChatBot {
             
         } catch (error) {
             console.error('Error:', error);
-            this.addMessage('Sorry, something went wrong. Please try again.', 'bot');
+            const errorMessage = this.currentLanguage === 'en' 
+                ? 'Sorry, something went wrong. Please try again.'
+                : 'Désolé, quelque chose s\'est mal passé. Veuillez réessayer.';
+            this.addMessage(errorMessage, 'bot');
         } finally {
             // Hide loading
             this.showLoading(false);

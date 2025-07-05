@@ -25,37 +25,47 @@
 <body>
     <div class="container">
         <div class="chat-header">
-            <div class="logo-container">
-                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Book icon -->
-                    <rect x="20" y="25" width="60" height="50" rx="3" fill="white" opacity="0.9"/>
-                    <rect x="23" y="28" width="54" height="44" rx="2" fill="none" stroke="white" stroke-width="2"/>
-                    <!-- Pages -->
-                    <line x1="30" y1="35" x2="70" y2="35" stroke="white" stroke-width="1.5" opacity="0.8"/>
-                    <line x1="30" y1="42" x2="65" y2="42" stroke="white" stroke-width="1.5" opacity="0.8"/>
-                    <line x1="30" y1="49" x2="70" y2="49" stroke="white" stroke-width="1.5" opacity="0.8"/>
-                    <line x1="30" y1="56" x2="60" y2="56" stroke="white" stroke-width="1.5" opacity="0.8"/>
-                    <!-- GSM indicator -->
-                    <circle cx="50" cy="15" r="12" fill="white" opacity="0.2"/>
-                    <text x="50" y="19" text-anchor="middle" fill="white" font-size="8" font-weight="bold">GSM</text>
-                    <!-- Scale/balance indicator -->
-                    <circle cx="50" cy="85" r="8" fill="white" opacity="0.3"/>
-                    <rect x="46" y="82" width="8" height="2" fill="white"/>
-                    <rect x="44" y="84" width="12" height="1" fill="white"/>
-                </svg>
-                <div class="logo-text">
-                    <h1>GSM Validator</h1>
-                    <span class="logo-subtitle">For Books</span>
+            <div class="header-top">
+                <div class="logo-container">
+                    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Book icon -->
+                        <rect x="20" y="25" width="60" height="50" rx="3" fill="white" opacity="0.9"/>
+                        <rect x="23" y="28" width="54" height="44" rx="2" fill="none" stroke="white" stroke-width="2"/>
+                        <!-- Pages -->
+                        <line x1="30" y1="35" x2="70" y2="35" stroke="white" stroke-width="1.5" opacity="0.8"/>
+                        <line x1="30" y1="42" x2="65" y2="42" stroke="white" stroke-width="1.5" opacity="0.8"/>
+                        <line x1="30" y1="49" x2="70" y2="49" stroke="white" stroke-width="1.5" opacity="0.8"/>
+                        <line x1="30" y1="56" x2="60" y2="56" stroke="white" stroke-width="1.5" opacity="0.8"/>
+                        <!-- GSM indicator -->
+                        <circle cx="50" cy="15" r="12" fill="white" opacity="0.2"/>
+                        <text x="50" y="19" text-anchor="middle" fill="white" font-size="8" font-weight="bold">GSM</text>
+                        <!-- Scale/balance indicator -->
+                        <circle cx="50" cy="85" r="8" fill="white" opacity="0.3"/>
+                        <rect x="46" y="82" width="8" height="2" fill="white"/>
+                        <rect x="44" y="84" width="12" height="1" fill="white"/>
+                    </svg>
+                    <div class="logo-text">
+                        <h1 data-en="GSM Validator" data-fr="Validateur GSM">GSM Validator</h1>
+                        <span class="logo-subtitle" data-en="For Books" data-fr="Pour Livres">For Books</span>
+                    </div>
+                </div>
+                <div class="language-toggle">
+                    <button id="languageToggle" class="language-btn">
+                        <span class="flag-icon">🇬🇧</span>
+                        <span class="lang-text">EN</span>
+                    </button>
                 </div>
             </div>
-            <p>Precision validation for book specifications and weight analysis</p>
+            <p data-en="Precision validation for book specifications and weight analysis" data-fr="Validation précise des spécifications et analyse du poids des livres">Precision validation for book specifications and weight analysis</p>
         </div>
         
         <div class="chat-container">
             <div id="chatMessages" class="chat-messages">
                 <div class="welcome-message">
                     <div class="bot-message">
-                        <div class="message-content">
+                        <div class="message-content" 
+                             data-en="Welcome to the GSM Validator! I'll help you validate the GSM (Grams per Square Meter) specifications of your books by analyzing dimensions, page count, and weights. Click 'Let's Start' to begin validation."
+                             data-fr="Bienvenue dans le Validateur GSM ! Je vous aiderai à valider les spécifications GSM (grammes par mètre carré) de vos livres en analysant les dimensions, le nombre de pages et les poids. Cliquez sur 'Commençons' pour commencer la validation.">
                             Welcome to the GSM Validator! I'll help you validate the GSM (Grams per Square Meter) specifications of your books by analyzing dimensions, page count, and weights. Click "Let's Start" to begin validation.
                         </div>
                     </div>
@@ -64,12 +74,13 @@
             
             <div class="chat-input-container">
                 <div id="startContainer" class="start-container">
-                    <button id="startBtn" class="start-btn">Let's Start</button>
+                    <button id="startBtn" class="start-btn" data-en="Let's Start" data-fr="Commençons">Let's Start</button>
                 </div>
                 
                 <div id="inputContainer" class="input-container" style="display: none;">
-                    <input type="text" id="messageInput" placeholder="Type your message..." class="message-input">
-                    <button id="sendBtn" class="send-btn">Send</button>
+                    <input type="text" id="messageInput" placeholder="Type your message..." class="message-input"
+                           data-en-placeholder="Type your message..." data-fr-placeholder="Tapez votre message...">
+                    <button id="sendBtn" class="send-btn" data-en="Send" data-fr="Envoyer">Send</button>
                 </div>
                 
                 <div class="loading" id="loading" style="display: none;">
