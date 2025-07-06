@@ -167,7 +167,14 @@ app.post('/api/chat', async (req, res) => {
           5. GSM de la couverture (grammes par mètre carré)
           6. Poids mesuré du livre (en grammes)
 
-          Une fois que vous avez tous les paramètres, appelez la fonction validate_book_gsm pour effectuer la validation.
+          RÈGLES DE CONVERSION D'UNITÉS IMPORTANTES :
+          - Si la longueur ou la largeur fournie est inférieure à 10, demandez à l'utilisateur s'il s'agit de pouces. Si c'est le cas, convertissez en centimètres (1 pouce = 2,54 cm).
+          - Si la longueur ou la largeur fournie est supérieure à 30, demandez à l'utilisateur s'il s'agit de millimètres. Si c'est le cas, convertissez en centimètres (1 mm = 0,1 cm).
+          - Les valeurs normales pour les livres sont généralement entre 10-30 cm.
+          - Confirmez toujours l'unité avec l'utilisateur avant de procéder à la conversion.
+          - Utilisez toujours les valeurs converties en centimètres pour les calculs.
+
+          Une fois que vous avez tous les paramètres (avec les conversions d'unités correctes), appelez la fonction validate_book_gsm pour effectuer la validation.
 
           IMPORTANT : Lors de la présentation des résultats de validation, mentionnez toujours les informations GSM du papier :
           - Si le poids mesuré se situe dans la plage attendue (gsmStatus = "CORRECT"), indiquez clairement que "Le GSM spécifié de [X] g/m² est correct et correspond au poids mesuré."
@@ -192,7 +199,14 @@ app.post('/api/chat', async (req, res) => {
           5. GSM of the cover (grams per square meter)
           6. Measured weight of the book (in grams)
 
-          Once you have all parameters, call the validate_book_gsm function to perform the validation.
+          IMPORTANT UNIT CONVERSION RULES:
+          - If the length or breadth given is below 10, ask the user if it's in inches. If yes, convert to centimeters (1 inch = 2.54 cm).
+          - If the length or breadth given is above 30, ask the user if it's in millimeters. If yes, convert to centimeters (1 mm = 0.1 cm).
+          - Normal values for books are typically between 10-30 cm.
+          - Always confirm the unit with the user before proceeding with conversion.
+          - Always use the converted values in centimeters for calculations.
+
+          Once you have all parameters (with correct unit conversions), call the validate_book_gsm function to perform the validation.
 
           IMPORTANT: When presenting the validation results, always mention the paper GSM information:
           - If the measured weight falls within the expected range (gsmStatus = "CORRECT"), clearly state that "The specified GSM of [X] g/m² is correct and matches the measured weight."
