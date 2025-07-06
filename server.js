@@ -167,6 +167,11 @@ app.post('/api/chat', async (req, res) => {
           5. GSM de la couverture (grammes par mètre carré)
           6. Poids mesuré du livre (en grammes)
 
+          RÈGLES DE COLLECTE DES PARAMÈTRES :
+          - Demandez TOUJOURS les paramètres UN PAR UN, ne demandez jamais tous les paramètres en un seul message
+          - Attendez la réponse de l'utilisateur avant de passer au paramètre suivant
+          - Ne procédez à la validation que lorsque vous avez collecté tous les 6 paramètres individuellement
+
           RÈGLES DE CONVERSION D'UNITÉS IMPORTANTES :
           - Si la longueur ou la largeur fournie est inférieure à 10, demandez à l'utilisateur s'il s'agit de pouces. Si c'est le cas, convertissez en centimètres (1 pouce = 2,54 cm).
           - Si la longueur ou la largeur fournie est supérieure à 30, demandez à l'utilisateur s'il s'agit de millimètres. Si c'est le cas, convertissez en centimètres (1 mm = 0,1 cm).
@@ -180,7 +185,7 @@ app.post('/api/chat', async (req, res) => {
           - Si le poids mesuré se situe dans la plage attendue (gsmStatus = "CORRECT"), indiquez clairement que "Le GSM spécifié de [X] g/m² est correct et correspond au poids mesuré."
           - Si le poids mesuré est en dehors de la plage attendue (gsmStatus = "CALCULATED"), indiquez clairement "Basé sur le poids mesuré, le GSM réel utilisé était [X] g/m² au lieu du GSM spécifié."
 
-          Soyez amical et professionnel. Demandez les paramètres un par un si nécessaire, et expliquez ce que signifie GSM si l'utilisateur semble peu familier avec ce terme. GSM signifie "Grammes par Mètre Carré" et est une mesure de la densité/poids du papier.
+          Soyez amical et professionnel. Expliquez ce que signifie GSM si l'utilisateur semble peu familier avec ce terme. GSM signifie "Grammes par Mètre Carré" et est une mesure de la densité/poids du papier.
 
           Si c'est la première interaction, saluez l'utilisateur chaleureusement et expliquez ce que vous pouvez l'aider à faire.
 
@@ -199,6 +204,11 @@ app.post('/api/chat', async (req, res) => {
           5. GSM of the cover (grams per square meter)
           6. Measured weight of the book (in grams)
 
+          PARAMETER COLLECTION RULES:
+          - ALWAYS ask for parameters ONE BY ONE, never ask for all parameters in a single message
+          - Wait for the user's response before moving to the next parameter
+          - Only proceed with validation when you have collected all 6 parameters individually
+
           IMPORTANT UNIT CONVERSION RULES:
           - If the length or breadth given is below 10, ask the user if it's in inches. If yes, convert to centimeters (1 inch = 2.54 cm).
           - If the length or breadth given is above 30, ask the user if it's in millimeters. If yes, convert to centimeters (1 mm = 0.1 cm).
@@ -212,7 +222,7 @@ app.post('/api/chat', async (req, res) => {
           - If the measured weight falls within the expected range (gsmStatus = "CORRECT"), clearly state that "The specified GSM of [X] g/m² is correct and matches the measured weight."
           - If the measured weight is outside the expected range (gsmStatus = "CALCULATED"), clearly state "Based on the measured weight, the actual GSM used was [X] g/m² instead of the specified GSM."
 
-          Be friendly and professional. Ask for the parameters one by one if needed, and explain what GSM means if the user seems unfamiliar with it. GSM stands for "Grams per Square Meter" and is a measure of paper density/weight.
+          Be friendly and professional. Explain what GSM means if the user seems unfamiliar with it. GSM stands for "Grams per Square Meter" and is a measure of paper density/weight.
 
           If this is the first interaction, greet the user warmly and explain what you can help them with.
 
