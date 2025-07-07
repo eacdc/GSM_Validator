@@ -8,6 +8,7 @@ class ChatBot {
         this.sendBtn = document.getElementById('sendBtn');
         this.loading = document.getElementById('loading');
         this.languageToggle = document.getElementById('languageToggle');
+        this.chatHeader = document.querySelector('.chat-header');
         
         // Language settings
         this.currentLanguage = 'en';
@@ -15,6 +16,10 @@ class ChatBot {
             en: { flag: '🇬🇧', code: 'EN', name: 'English' },
             fr: { flag: '🇫🇷', code: 'FR', name: 'Français' }
         };
+        
+        // Scroll tracking for mobile header collapse
+        this.lastScrollY = 0;
+        this.isScrolling = false;
         
         this.init();
     }
@@ -29,8 +34,27 @@ class ChatBot {
             }
         });
         
+        // Add scroll listener for mobile header collapse
+        this.chatMessages.addEventListener('scroll', () => this.handleScroll());
+        
         // Load saved language preference
         this.loadLanguagePreference();
+    }
+    
+    handleScroll() {
+        // Only apply on mobile devices
+        if (window.innerWidth > 768) return;
+        
+        const currentScrollY = this.chatMessages.scrollTop;
+        
+        // Add collapsed class when scrolling down, remove when at top
+        if (currentScrollY > 50) {
+            this.chatHeader.classList.add('collapsed');
+        } else {
+            this.chatHeader.classList.remove('collapsed');
+        }
+        
+        this.lastScrollY = currentScrollY;
     }
     
     toggleLanguage() {
